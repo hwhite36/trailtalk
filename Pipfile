@@ -6,8 +6,10 @@ name = "pypi"
 [packages]
 google-genai = "*"
 python-dotenv = "*"
+twilio = "*"
+flask = "*"
 
 [dev-packages]
 
 [requires]
-
+python_version = "3.14"
