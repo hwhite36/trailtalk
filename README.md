@@ -6,3 +6,8 @@ We run a small Flask server that listens for texts on a Twilio number and then s
 ## How to run
 
 ## Code info
+
+## TODO
+- Set up gunicorn
+- Set up nginx (separate, private server config repo?)
+  - Set up let's encrypt/certbot
