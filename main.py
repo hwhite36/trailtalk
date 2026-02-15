@@ -15,6 +15,8 @@ SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and s
                  "prioritize completeness of important information over multiple back-and-forth interactions "
                  "up to a 1500-character response.")
 
+MODEL_VERSION = "gemini-3-flash-preview"
+
 conversation_history = {}
 
 app = Flask(__name__)
@@ -84,7 +86,7 @@ def handle_message_response(message, sender_id):
     )
 
     response = gemini_client.models.generate_content(
-        model="gemini-3-flash-preview",
+        model=MODEL_VERSION,
         contents=conversation_history[sender_id],
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
@@ -97,17 +99,21 @@ def handle_message_response(message, sender_id):
         # TODO test saving tool usage in chat history
         pass
 
+    append_model_history(response.text, sender_id)
+
+    return response.text
+
+
+def append_model_history(model_response_text, sender_id):
     # Save model's response to history
     conversation_history[sender_id].append(
-        {"role": "model", "parts": [{"text": response.text}]}
+        {"role": "model", "parts": [{"text": model_response_text}]}
     )
 
     # Prune history to only keep most recent 100 texts per user (but ensure the history starts with a user message)
     conversation_history[sender_id] = conversation_history[sender_id][-100:]
     while conversation_history[sender_id][0].get("role") == "model":
         conversation_history[sender_id].pop(0)
-
-    return response.text
 
 
 if __name__ == "__main__":
