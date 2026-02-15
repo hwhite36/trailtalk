@@ -1,4 +1,5 @@
 from google import genai
+from google.genai import types
 from functools import wraps
 from os import getenv
 from dotenv import load_dotenv
@@ -7,6 +8,14 @@ from twilio.twiml.messaging_response import MessagingResponse
 from twilio.request_validator import RequestValidator
 
 load_dotenv()
+
+SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are messaging you "
+                 "from the backcountry. Your responses will be sent via SMS. Be extremely concise. Do not use emojis, "
+                 "special symbols, or markdown formatting. Keep responses under 150 characters whenever possible, but "
+                 "prioritize completeness of important information over multiple back-and-forth interactions "
+                 "up to a 1500-character response.")
+
+conversation_history = {}
 
 app = Flask(__name__)
 
@@ -50,21 +59,60 @@ def reply_sms():
 
 
 def handle_message_response(message, sender_id):
+    # Update conversation history with new message
+    # TODO test for if input sanitation is needed e.g. passing in quotes
+    if sender_id not in conversation_history:
+        conversation_history[sender_id] = [
+            {"role": "user", "parts": [{"text": message}]},
+        ]
+    else:
+        conversation_history[sender_id].append({"role": "user", "parts": [{"text": message}]})
+
     # Spin up a connection to the LLM
     gemini_client = genai.Client(api_key=getenv("GEMINI_API_KEY"))
-    chat = gemini_client.chats.create(model=getenv("gemini-3-flash-preview"))
-    # Customize it with a system prompt: explain context of wilderness, need to use limited characters for SMS
 
-    # Check against in-memory dict of current convos?
+    # Build tools for internet-based activities
+    # TODO flesh out
+    weather_tool = types.Tool(
+        function_declarations=[
+            types.FunctionDeclaration(
+                name="get_weather",
+                description="Get the current weather for a specific location",
+                parameters=types.Schema()
+            )
+        ]
+    )
 
-    # Spin up new convo if no match
+    response = gemini_client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents=conversation_history[sender_id],
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            tools=[weather_tool]
+        )
+    )
 
-    # Save text of convo if that's needed?
-    # If no response received for x days, delete the session and convo history for the number?
-    return ""
+    # Check if Gemini wants to run a tool
+    if response.candidates[0].content.parts[0].function_call:
+        # TODO test saving tool usage in chat history
+        pass
+
+    # Save model's response to history
+    conversation_history[sender_id].append(
+        {"role": "model", "parts": [{"text": response.text}]}
+    )
+
+    # Prune history to only keep most recent 100 texts per user (but ensure the history starts with a user message)
+    conversation_history[sender_id] = conversation_history[sender_id][-100:]
+    while conversation_history[sender_id][0].get("role") == "model":
+        conversation_history[sender_id].pop(0)
+
+    return response.text
 
 
 if __name__ == "__main__":
     # Run locally for testing
     # Real production deployment is handled by Gunicorn + Nginx
-    app.run(port=3000, debug=True)
+    #app.run(port=3000, debug=True)
+    test_response = handle_message_response("How do I repair a busted link on my bike chain?", "harrison")
+    print(test_response)
