@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, abort
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.request_validator import RequestValidator
+from get_weather import weather_tool, get_weather
 
 load_dotenv()
 
@@ -60,7 +61,7 @@ def reply_sms():
     return str(resp)
 
 
-def handle_message_response(message, sender_id):
+def handle_message_response(message: str, sender_id: str):
     # Update conversation history with new message
     # TODO test for if input sanitation is needed e.g. passing in quotes
     if sender_id not in conversation_history:
@@ -73,38 +74,30 @@ def handle_message_response(message, sender_id):
     # Spin up a connection to the LLM
     gemini_client = genai.Client(api_key=getenv("GEMINI_API_KEY"))
 
-    # Build tools for internet-based activities
-    # TODO flesh out
-    weather_tool = types.Tool(
-        function_declarations=[
-            types.FunctionDeclaration(
-                name="get_weather",
-                description="Get the current weather for a specific location",
-                parameters=types.Schema()
-            )
-        ]
-    )
-
     response = gemini_client.models.generate_content(
         model=MODEL_VERSION,
         contents=conversation_history[sender_id],
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
-            tools=[weather_tool]
+            tools=[
+                weather_tool
+            ]
         )
     )
 
-    # Check if Gemini wants to run a tool
-    if response.candidates[0].content.parts[0].function_call:
-        # TODO test saving tool usage in chat history
-        pass
+    # Check if Gemini wants to do any function calls
+    tool_call = response.candidates[0].content.parts[0].function_call
+    if tool_call:
+        if tool_call.name == "get_weather":
+            # TODO test saving tool usage in chat history
+            pass
 
     append_model_history(response.text, sender_id)
 
     return response.text
 
 
-def append_model_history(model_response_text, sender_id):
+def append_model_history(model_response_text: str, sender_id: str):
     # Save model's response to history
     conversation_history[sender_id].append(
         {"role": "model", "parts": [{"text": model_response_text}]}
