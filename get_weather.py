@@ -4,7 +4,8 @@ import requests
 # Define the get_weather tool so Gemini knows how to use it
 get_weather_declaration = {
     "name": "get_weather",
-    "description": "Fetch the hourly and week's weather forecast for a specific location defined via coordinates",
+    "description": "Fetch the hourly and week's weather forecast for a specific location defined via latitude and "
+                   "longitude coordinates",
     "parameters": {
         "type": "object",
         "properties": {
