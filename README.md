@@ -1,4 +1,4 @@
-# Wilderness Assistant
+# TrailTalk
 An SMS-based LLM that is intended to be texted via satellite when camping or otherwise off the grid.
 
 We run a small Flask server that listens for texts on a Twilio number and then sends them to Gemini, all bundled into a Docker container for ease of deployment.
