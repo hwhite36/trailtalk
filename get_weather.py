@@ -24,6 +24,11 @@ get_weather_declaration = {
 
 weather_tool = types.Tool(function_declarations=[types.FunctionDeclaration(**get_weather_declaration)])
 
+ERROR_RESPONSE = {
+        "status": "failed",
+        "message": "The weather service is currently unavailable. Please apologize to the user."
+    }
+
 def get_weather(latitude: float, longitude: float):
     """
     Fetch the hourly and week's weather forecast from NOAA
@@ -37,7 +42,7 @@ def get_weather(latitude: float, longitude: float):
     :return: a dictionary with the hourly and week's weather forecast
     """
     # NOAA API doesn't require any auth or API keys lol, but we'll include a User-Agent as a gesture of good faith
-    headers = {"Accept": "application/geo+json", "User-Agent": "WildernessAssistantWeatherBot/1.0"}
+    headers = {"Accept": "application/geo+json", "User-Agent": "TrailTalk/1.0"}
     coords_metadata_url = f"https://api.weather.gov/points/{latitude},{longitude}"
 
     try:
@@ -48,7 +53,7 @@ def get_weather(latitude: float, longitude: float):
         general_forecast_url = coords_metadata_json["properties"]["forecast"]
         hourly_forecast_url = coords_metadata_json["properties"]["forecastHourly"]
         if not general_forecast_url or not hourly_forecast_url:
-            return {"Error": "Error fetching forecast URL"}
+            return {**ERROR_RESPONSE, "technical_details": "Unable to determine URL required for fetching forecast"}
 
         # Now we fetch the actual forecast data
         gen_forecast_resp = requests.get(general_forecast_url, headers=headers)
@@ -68,5 +73,5 @@ def get_weather(latitude: float, longitude: float):
         # TODO update to logger
         print(e)
         if e.response.status_code == 404:
-            return {"Error": "No NOAA weather forecast available for that location"}
-        return {"Error": f"Could not fetch weather data: {e}"}
+            return {**ERROR_RESPONSE, "technical_details": "No NOAA weather forecast available for requested location"}
+        return {**ERROR_RESPONSE, "technical_details": str(e)}
