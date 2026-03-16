@@ -1,4 +1,5 @@
 .idea/
+.venv/
 .env
 Pipfile.lock
 __pycache__/
