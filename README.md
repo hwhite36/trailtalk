@@ -12,6 +12,7 @@ We run a small Flask server that listens for texts on a Twilio number and then s
 - Set up sophisticated logger, logging to file
 - Set up conversation history saving to PostgreSQL
 - Set up additional tools (news fetcher, ?)
+- Add types to all functions/ensure function docstrings are up to date
 - Set up gunicorn
 - Set up nginx (separate, private server config repo?)
   - Set up let's encrypt/certbot
