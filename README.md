@@ -8,12 +8,14 @@ We run a small Flask server that listens for texts on a Twilio number and then s
 ## Code info
 
 ## TODO
-- Set up interaction with Gemini
-- Figure out how to deal with convos statefully
-- Set up weather interaction with NOAA API
-- Set up logging to file
+- Connect to Twilio
+- Set up sophisticated logger, logging to file
+- Set up conversation history saving to PostgreSQL
 - Set up gunicorn
 - Set up nginx (separate, private server config repo?)
   - Set up let's encrypt/certbot
-- Publish image and set up docker-compose example in readme with postgres image
+- Add retry logic to tool calling and graceful error handling
+- Publish image and set up docker-compose example in readme
+  - Allow for customization of system prompt?
+  - Set up CI/CD on GitHub to rebuild image
 - Add support for locally running model
