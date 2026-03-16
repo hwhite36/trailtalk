@@ -84,7 +84,7 @@ def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None
         contents=conversation_history[sender_id],
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
-            tools=[tool for tool in AVAILABLE_TOOLS if tool not in tools_to_exclude]
+            tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
         )
     )
     return response
