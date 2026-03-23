@@ -21,7 +21,7 @@ MODEL_VERSION = "gemini-3-flash-preview"
 AVAILABLE_TOOLS = [weather_tool]
 
 # We use a passphrase to allow friends to text without manually maintaining a whitelist
-SMS_PASSPHRASE = os.getenv("SMS_PASSPHRASE")
+SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 
 conversation_history = {}
 
@@ -66,7 +66,7 @@ def reply_sms():
         response_text = handle_message_response(sender_message, sender_phone_num)
         resp.message(response_text)
     elif sender_message.upper() == SMS_PASSPHRASE:
-        response_text = os.getenv("NEW_USER_RESPONSE",
+        response_text = getenv("NEW_USER_RESPONSE",
                                   "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
         save_new_user(sender_phone_num)
         resp.message(response_text)
@@ -107,7 +107,7 @@ def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None
         model=MODEL_VERSION,
         contents=conversation_history[sender_id],
         config=types.GenerateContentConfig(
-            system_instruction=os.getenv("LLM_SYSTEM_PROMPT", SYSTEM_PROMPT),
+            system_instruction=getenv("LLM_SYSTEM_PROMPT", SYSTEM_PROMPT),
             tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
         )
     )
