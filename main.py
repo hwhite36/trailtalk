@@ -66,7 +66,8 @@ def reply_sms():
         response_text = handle_message_response(sender_message, sender_phone_num)
         resp.message(response_text)
     elif sender_message.upper() == SMS_PASSPHRASE:
-        response_text = os.getenv("NEW_USER_RESPONSE", "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
+        response_text = os.getenv("NEW_USER_RESPONSE",
+                                  "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
         save_new_user(sender_phone_num)
         resp.message(response_text)
     else:
@@ -106,7 +107,7 @@ def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None
         model=MODEL_VERSION,
         contents=conversation_history[sender_id],
         config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
+            system_instruction=os.getenv("LLM_SYSTEM_PROMPT", SYSTEM_PROMPT),
             tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
         )
     )
