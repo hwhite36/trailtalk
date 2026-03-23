@@ -20,6 +20,9 @@ SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and s
 MODEL_VERSION = "gemini-3-flash-preview"
 AVAILABLE_TOOLS = [weather_tool]
 
+# We use a passphrase to allow friends to text without manually maintaining a whitelist
+SMS_PASSPHRASE = os.getenv("SMS_PASSPHRASE")
+
 conversation_history = {}
 
 app = Flask(__name__)
@@ -51,21 +54,41 @@ def validate_twilio_request(f):
 @validate_twilio_request
 def reply_sms():
     """
-    TODO
+    Determines if the incoming message is a user or is trying to register in good faith, and responds accordingly
 
-    :return:
+    :return: A MessagingResponse object, which is empty if we don't want to respond
     """
-    sms_body = request.values.get('Body', None)
-    sender_phone_num = request.values.get()
-
+    sender_phone_num = request.values.get('From')
+    sender_message = request.values.get('Body', None)
     resp = MessagingResponse()
 
-    if sms_body:  # TODO flesh out conditions for responding
-        response_text = handle_message_response(sms_body, sender_phone_num)
+    if user_exists(sender_phone_num):
+        response_text = handle_message_response(sender_message, sender_phone_num)
         resp.message(response_text)
+    elif sender_message.upper() == SMS_PASSPHRASE:
+        response_text = os.getenv("NEW_USER_RESPONSE", "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
+        save_new_user(sender_phone_num)
+        resp.message(response_text)
+    else:
+        return str(resp) # empty response indicates our reception of the message without sending a reply
 
-    # if no conditions met, return an empty TwiXML response to Twilio, which indicates our reception of the message
-    return str(resp)
+
+def user_exists(phone_num):
+    """
+    TODO
+    :param phone_num:
+    :return:
+    """
+    pass
+
+
+def save_new_user(phone_num):
+    """
+    TODO
+    :param phone_num:
+    :return:
+    """
+    pass
 
 
 def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None = None):
