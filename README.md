@@ -8,11 +8,9 @@ We run a small Flask server that listens for texts on a Twilio number and then s
 ## Code info
 
 ## TODO
-- Connect to Twilio
-- Set up sophisticated logger, logging to file
 - Set up conversation history saving to PostgreSQL
-- Set up additional tools (news fetcher, ?)
 - Add types to all functions/ensure function docstrings are up to date
+- Connect to Twilio
 - Set up gunicorn
 - Set up nginx (separate, private server config repo?)
   - Set up let's encrypt/certbot
@@ -20,4 +18,5 @@ We run a small Flask server that listens for texts on a Twilio number and then s
 - Publish image and set up docker-compose example in readme
   - Allow for customization of system prompt?
   - Set up CI/CD on GitHub to rebuild image
+- Set up additional tools (news fetcher, ?)
 - Add support for locally running model
