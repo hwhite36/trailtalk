@@ -1,5 +1,6 @@
 from google.genai import types
 import requests
+import logging
 
 # Define the get_weather tool so Gemini knows how to use it
 get_weather_declaration = {
@@ -70,8 +71,7 @@ def get_weather(latitude: float, longitude: float):
         return {"Hourly forecast": hourly_forecast_24hrs, "Week's forecast": week_forecast}
 
     except requests.exceptions.HTTPError as e:
-        # TODO update to logger
-        print(e)
+        logging.error(e)
         if e.response.status_code == 404:
             return {**ERROR_RESPONSE, "technical_details": "No NOAA weather forecast available for requested location"}
         return {**ERROR_RESPONSE, "technical_details": str(e)}

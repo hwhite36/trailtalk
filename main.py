@@ -8,23 +8,22 @@ from flask import Flask, request, abort
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.request_validator import RequestValidator
 from get_weather import weather_tool, get_weather
-
-load_dotenv()
+import logging
+from logger import setup_logging
 
 SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are messaging you "
                  "from the backcountry. Your responses will be sent via SMS. Be extremely concise. Do not use emojis, "
                  "special symbols, or markdown formatting. Keep responses under 150 characters whenever possible, but "
                  "prioritize completeness of important information over multiple back-and-forth interactions "
                  "up to a 1500-character response.")
-
 MODEL_VERSION = "gemini-3-flash-preview"
 AVAILABLE_TOOLS = [weather_tool]
-
 # We use a passphrase to allow friends to text without manually maintaining a whitelist
 SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 
 conversation_history = {}
-
+load_dotenv()
+setup_logging(app)
 app = Flask(__name__)
 
 
@@ -172,12 +171,11 @@ def handle_message_response(message: str, sender_id: str):
             # Since we reassign response, execution flow continues through the function
 
         else:
-            print("Tool call not recognized")  # TODO log
+            logging.error("Tool call not recognized")
             raise Exception("Tool call not recognized")
 
     record_model_response(response, sender_id)
-    # TODO logger debug
-    # print(conversation_history)
+    logging.debug("convo history: " + conversation_history)
     return response.text
 
 
@@ -206,4 +204,4 @@ if __name__ == "__main__":
     # Real production deployment is handled by Gunicorn + Nginx
     #app.run(port=3000, debug=True)
     test_response = handle_message_response("What's the weather for 38.889484, -77.035278?", "harrison")
-    print(test_response)
+    logging.info(test_response)
