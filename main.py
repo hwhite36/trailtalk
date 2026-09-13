@@ -10,20 +10,25 @@ from twilio.request_validator import RequestValidator
 from get_weather import weather_tool, get_weather
 import logging
 from logger import setup_logging
+from db import init_db_pool, init_db_schema
 
-SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are messaging you "
-                 "from the backcountry. Your responses will be sent via SMS. Be extremely concise. Do not use emojis, "
-                 "special symbols, or markdown formatting. Keep responses under 150 characters whenever possible, but "
-                 "prioritize completeness of important information over multiple back-and-forth interactions "
-                 "up to a 1500-character response.")
+
+DEFAULT_SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are messaging "
+                         "you from the backcountry. Your responses will be sent via SMS. Be extremely concise. Do not "
+                         "use emojis, special symbols, or markdown formatting. Keep responses under 150 characters "
+                         "whenever possible, but prioritize completeness of important information over multiple "
+                         "back-and-forth interactions up to a 1500-character response.")
 MODEL_VERSION = "gemini-3-flash-preview"
 AVAILABLE_TOOLS = [weather_tool]
+
 # We use a passphrase to allow friends to text without manually maintaining a whitelist
 SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 
 conversation_history = {}
 load_dotenv()
 setup_logging(app)
+init_db_pool()
+init_db_schema()
 app = Flask(__name__)
 
 
@@ -106,7 +111,7 @@ def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None
         model=MODEL_VERSION,
         contents=conversation_history[sender_id],
         config=types.GenerateContentConfig(
-            system_instruction=getenv("LLM_SYSTEM_PROMPT", SYSTEM_PROMPT),
+            system_instruction=getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT),
             tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
         )
     )

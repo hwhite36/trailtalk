@@ -8,6 +8,7 @@ google-genai = "*"
 python-dotenv = "*"
 twilio = "*"
 flask = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
