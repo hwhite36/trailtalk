@@ -26,10 +26,10 @@ SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 
 conversation_history = {}
 load_dotenv()
+app = Flask(__name__)
 setup_logging(app)
 init_db_pool()
 init_db_schema()
-app = Flask(__name__)
 
 
 def validate_twilio_request(f):
