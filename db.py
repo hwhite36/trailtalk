@@ -1,6 +1,8 @@
+import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import logging
+from pathlib import Path
 from os import getenv
 from contextlib import contextmanager
 from google.genai import types
@@ -43,21 +45,17 @@ def get_db_cursor():
         db_pool.putconn(conn)
 
 def init_db_schema():
-    logging.info("Initializing database schema...")
+    schema_path = Path(__file__).parent / "schema.sql"
+    if not schema_path.exists():
+        logging.error(f"Schema file not found at {schema_path}")
+        return
 
+    schema_sql = schema_path.read_text(encoding="utf-8")
+
+    logging.info("Initializing database schema from schema.sql...")
     with get_db_cursor() as cur:
-        cur.execute("""
-                    CREATE TABLE IF NOT EXISTS conversation_history (
-                        id SERIAL PRIMARY KEY,
-                        sender_id VARCHAR(50) NOT NULL,
-                        role VARCHAR(20) NOT NULL,
-                        content JSONB NOT NULL,
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                    );
-    
-                    CREATE INDEX IF NOT EXISTS idx_sender_id ON conversation_history(sender_id);
-                """)
-        logging.info("Database schema initialized successfully.")
+        cur.execute(schema_sql)
+    logging.info("Database schema initialized successfully.")
 
 def save_convo_content_to_db(sender_id: str, content: types.Content):
     content_dict = content.to_dict() if hasattr(content, "to_dict") else content
