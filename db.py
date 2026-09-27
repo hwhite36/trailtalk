@@ -25,6 +25,7 @@ def init_db_pool():
         logging.error(f"Failed to initialize database connection pool: {e}")
         raise e
 
+
 @contextmanager
 def get_db_cursor():
     """
@@ -44,6 +45,7 @@ def get_db_cursor():
     finally:
         db_pool.putconn(conn)
 
+
 def init_db_schema():
     schema_path = Path(__file__).parent / "schema.sql"
     if not schema_path.exists():
@@ -57,30 +59,114 @@ def init_db_schema():
         cur.execute(schema_sql)
     logging.info("Database schema initialized successfully.")
 
-def save_convo_content_to_db(sender_id: str, content: types.Content):
+
+def save_convo_content_to_db(user_id: str, content: types.Content) -> dict:
     content_dict = content.to_dict() if hasattr(content, "to_dict") else content
+    role = content_dict.get("role", "user")
 
     with get_db_cursor() as cur:
         cur.execute(
             """
-            INSERT INTO conversation_history (sender_id, role, content)
-            VALUES (%s, %s, %s);
+            INSERT INTO conversation_history (user_id, role, content)
+            VALUES (%s, %s, %s::jsonb)
+            RETURNING id, user_id, role, content, created_at;
             """,
-            (sender_id, content.role, json.dumps(content_dict))
+            (user_id, role, json.dumps(content_dict))
         )
+        record = cur.fetchone()
+        logging.debug(f"Saved conversation record ID {record['id']} for user_id {user_id}")
 
-def load_history_from_db(sender_id: str, limit: int = 100) -> list[types.Content]:
+    return dict(record)
+
+
+def load_history_from_db(user_id: str, limit: int = 50, session_hours: int = 4) -> list[types.Content]:
+    """
+    Loads recent conversation context for a user by user ID, bounded by a maximum turn limit and an inactivity cutoff
+    window. Guarantees the history payload starts with a 'user' message, as required by the Gemini API.
+
+    :param user_id: user's ID.
+    :param limit: Maximum number of recent messages to retrieve.
+    :param session_hours: Number of hours after which a session is considered expired.
+    :return: A list of types.Content objects ordered chronologically (Oldest -> Newest).
+    """
+
     with get_db_cursor() as cur:
         cur.execute(
             """
-            SELECT content FROM conversation_history 
-            WHERE sender_id = %s 
-            ORDER BY created_at DESC 
+            SELECT content 
+            FROM conversation_history
+            WHERE user_id = %s
+              AND created_at >= NOW() - (%s || ' hours')::INTERVAL
+            ORDER BY created_at DESC
             LIMIT %s;
             """,
-            (sender_id, limit)
-        )
+            (user_id, str(session_hours), limit))
         rows = cur.fetchall()
 
-    # Reconstruct Content objects chronologically (DB stores as DESC so we must reverse)
-    return [types.Content(**row['content']) for row in reversed(rows)]
+    if not rows:
+        return []
+
+    # Reconstruct Content objects chronologically (oldest -> newest)
+    history = [types.Content(**row['content']) for row in reversed(rows)]
+
+    # Fast-forward past any boundary artifacts at the start of the window
+    # A valid Gemini history payload MUST start with role="user" that is NOT a tool response.
+    start_idx = 0
+    while start_idx < len(history):
+        first = history[start_idx]
+
+        # Drop model messages
+        if first.role != "user":
+            start_idx += 1
+            continue
+
+        # Drop orphaned function_responses
+        has_tool_response = any(
+            hasattr(part, "function_response") and part.function_response is not None
+            for part in (first.parts or [])
+        )
+        if has_tool_response:
+            start_idx += 1
+            continue
+
+        break
+
+    return history[start_idx:]
+
+
+def check_if_user_exists(phone_num: str) -> bool:
+    with get_db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM users 
+                WHERE phone_number = %s
+            );
+            """,
+            (phone_num,)
+        )
+        result = cur.fetchone()
+    return result['exists']
+
+
+def get_or_create_user(phone_num: str) -> dict:
+    """
+    Fetch or create a new user if no user with the phone number exists.
+    We do a no-op on conflict to secure the lock and execute the return statement.
+    :param phone_num: user's phone number
+    :return: the new user object
+    """
+    with get_db_cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO users (phone_number)
+            VALUES (%s)
+            ON CONFLICT (phone_number) 
+            DO UPDATE SET phone_number = EXCLUDED.phone_number
+            RETURNING id, phone_number, created_at;
+            """,
+            (phone_num,)
+        )
+        new_user = cur.fetchone()
+        return dict(new_user)

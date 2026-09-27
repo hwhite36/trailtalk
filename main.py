@@ -1,17 +1,19 @@
+from os import getenv
+from dotenv import load_dotenv
+import logging
+load_dotenv()
+
 from google import genai
 from google.genai import types
 import typing
 from functools import wraps
-from os import getenv
-from dotenv import load_dotenv
 from flask import Flask, request, abort
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.request_validator import RequestValidator
 from get_weather import weather_tool, get_weather
-import logging
 from logger import setup_logging
-from db import init_db_pool, init_db_schema
-
+from db import init_db_pool, init_db_schema, check_if_user_exists, get_or_create_user, load_history_from_db, \
+    save_convo_content_to_db
 
 DEFAULT_SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are messaging "
                          "you from the backcountry. Your responses will be sent via SMS. Be extremely concise. Do not "
@@ -24,12 +26,11 @@ AVAILABLE_TOOLS = [weather_tool]
 # We use a passphrase to allow friends to text without manually maintaining a whitelist
 SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 
-conversation_history = {}
-load_dotenv()
 app = Flask(__name__)
 setup_logging(app)
 init_db_pool()
 init_db_schema()
+gemini_client = genai.Client(api_key=getenv("GEMINI_API_KEY"))
 
 
 def validate_twilio_request(f):
@@ -66,50 +67,38 @@ def reply_sms():
     sender_message = request.values.get('Body', None)
     resp = MessagingResponse()
 
-    if user_exists(sender_phone_num):
-        response_text = handle_message_response(sender_message, sender_phone_num)
+    user_exists = check_if_user_exists(sender_phone_num)
+
+    if user_exists or sender_message.upper() == SMS_PASSPHRASE:
+        user_obj = get_or_create_user(sender_phone_num)
+        if not user_exists:
+            response_text = getenv("NEW_USER_RESPONSE",
+                                   "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
+            logging.info(f"New user {user_obj['id']} created")
+            resp.message(response_text)
+            return str(resp)
+
+        # For returning users, load the prior convo history and handle response from there
+        prior_convo_history = load_history_from_db(user_obj['id'])
+        response_text = handle_message_response(sender_message, user_obj['id'], prior_convo_history)
         resp.message(response_text)
-    elif sender_message.upper() == SMS_PASSPHRASE:
-        response_text = getenv("NEW_USER_RESPONSE",
-                                  "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
-        save_new_user(sender_phone_num)
-        resp.message(response_text)
-    else:
-        return str(resp) # empty response indicates our reception of the message without sending a reply
+
+    return str(resp) # if this is an empty response, it indicates our reception of the message without sending a reply
 
 
-def user_exists(phone_num):
-    """
-    TODO
-    :param phone_num:
-    :return:
-    """
-    pass
-
-
-def save_new_user(phone_num):
-    """
-    TODO
-    :param phone_num:
-    :return:
-    """
-    pass
-
-
-def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None = None):
+def ping_gemini(convo_history: list, tools_to_exclude: typing.List[types.Tool] | None = None):
     """
     Generate a response from Gemini, given the current state of the conversation history.
 
-    :param sender_id: ID of the associated conversation history
+    :param convo_history: conversation history for the model to reference
     :param tools_to_exclude: Optional -- a list of tools to exclude from offering the model
     :return: Response from the model
     """
     tools_to_exclude = tools_to_exclude or []
 
-    gemini_client = genai.Client(api_key=getenv("GEMINI_API_KEY"))
     response = gemini_client.models.generate_content(
         model=MODEL_VERSION,
-        contents=conversation_history[sender_id],
+        contents=convo_history,
         config=types.GenerateContentConfig(
             system_instruction=getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT),
             tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
@@ -118,43 +107,47 @@ def ping_gemini(sender_id: str, tools_to_exclude: typing.List[types.Tool] | None
     return response
 
 
-def record_tool_execution(model_request_content, tool_name: str, tool_result, sender_id: str):
+def record_tool_execution(model_request_content, tool_name: str, tool_result, user_id: str, prior_convo_history):
     """
-    Append a Tool call request and subsequent result to the conversation.
+    Append a Tool call request and subsequent result to the conversation history in the DB,
+    and the in-memory convo history.
 
     :param model_request_content: the content of the response data from the model, asking to use a tool
     :param tool_name: name of the tool that was run
     :param tool_result: data from the tool execution
-    :param sender_id: ID of the user whose conversation the tool usage is associated with
+    :param user_id: ID of the user whose conversation the tool usage is associated with
+    :param prior_convo_history: prior conversation history that's being fed to the model; updated alongside DB convo history
     """
-    conversation_history[sender_id].append(model_request_content)
-    conversation_history[sender_id].append(
-        types.Content(
-            role="user",
-            parts=[types.Part.from_function_response(name=tool_name, response=tool_result)],
-        )
+    tool_result_content = types.Content(
+        role="user",
+        parts=[types.Part.from_function_response(name=tool_name, response=tool_result)],
     )
 
+    save_convo_content_to_db(user_id, model_request_content)
+    save_convo_content_to_db(user_id, tool_result_content)
+    prior_convo_history.append(model_request_content)
+    prior_convo_history.append(tool_result_content)
 
-def handle_message_response(message: str, sender_id: str):
+
+def handle_message_response(message: str, user_id: str, prior_convo_history: list):
     """
     Main entrypoint for responding to a text from a user. Orchestrate generating a response from the model and
     running any Tools as requested.
 
     :param message: The message from the user.
-    :param sender_id: The user's ID, for associating with conversation history.
+    :param user_id: The user's ID, for associating with conversation history.
+    :param prior_convo_history: A user's conversation history. Empty if the user is new.
     :return: A string of the model's response
     """
-    if sender_id not in conversation_history:
-        conversation_history[sender_id] = []
 
-    # Update conversation history with new message
-    conversation_history[sender_id].append(
+    # Update in-memory and DB conversation history with new message
+    prior_convo_history.append(
         types.Content(role="user", parts=[types.Part.from_text(text=message)])
     )
+    save_convo_content_to_db(user_id, types.Content(role="user", parts=[types.Part.from_text(text=message)]))
 
     try:
-        response = ping_gemini(sender_id)
+        response = ping_gemini(prior_convo_history)
     except Exception as e:
         # TODO respond gracefully
         raise e
@@ -164,12 +157,12 @@ def handle_message_response(message: str, sender_id: str):
     if tool_call:
         if tool_call.name == "get_weather":
             weather_data = get_weather(**tool_call.args)
-            record_tool_execution(response.candidates[0].content, tool_call.name, weather_data, sender_id)
+            record_tool_execution(response.candidates[0].content, tool_call.name, weather_data, user_id, prior_convo_history)
 
             # Get the final response from the model now that the conversation history has all the data
             # Note we exclude the weather tool to stop a re-attempt to call it if an error is returned
             try:
-                response = ping_gemini(sender_id, tools_to_exclude=[weather_tool])
+                response = ping_gemini(prior_convo_history, tools_to_exclude=[weather_tool])
             except Exception as e:
                 # TODO respond gracefully
                 raise e
@@ -179,29 +172,13 @@ def handle_message_response(message: str, sender_id: str):
             logging.error("Tool call not recognized")
             raise Exception("Tool call not recognized")
 
-    record_model_response(response, sender_id)
-    logging.debug("convo history: " + conversation_history)
+    # Now that we have a response, return it and save it to the DB
+    model_content = types.Content(
+        role="model",
+        parts=[types.Part.from_text(text=response.text)]
+    )
+    save_convo_content_to_db(user_id, model_content)
     return response.text
-
-
-def record_model_response(response, sender_id: str):
-    """
-    Save the model's response to the conversation history, and prune the conversation history as it grows.
-
-    :param response: The response body from pinging the Gemini API.
-    :param sender_id: ID of the associated conversation.
-    """
-    conversation_history[sender_id].append(response.candidates[0].content)
-
-    # Prune the history to keep context small
-    conversation_history[sender_id] = conversation_history[sender_id][-100:]
-    while conversation_history[sender_id]:
-        first_msg = conversation_history[sender_id][0]
-        # History must start with a user role AND not be a function response
-        if first_msg.role == "model" or first_msg.parts[0].function_response:
-            conversation_history[sender_id].pop(0)
-        else:
-            break
 
 
 if __name__ == "__main__":
