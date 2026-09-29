@@ -1,6 +1,6 @@
 import json
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, execute_values
 import logging
 from pathlib import Path
 from os import getenv
@@ -61,6 +61,12 @@ def init_db_schema():
 
 
 def save_convo_content_to_db(user_id: str, content: types.Content) -> dict:
+    """
+    Saves a single conversation element to the database.
+    :param user_id: user's ID
+    :param content: the conversation Content object to be saved
+    :return: a dictionary of the element inserted into the DB
+    """
     content_dict = content.to_dict() if hasattr(content, "to_dict") else content
     role = content_dict.get("role", "user")
 
@@ -77,6 +83,41 @@ def save_convo_content_to_db(user_id: str, content: types.Content) -> dict:
         logging.debug(f"Saved conversation record ID {record['id']} for user_id {user_id}")
 
     return dict(record)
+
+def save_convo_batch_to_db(user_id: str, content_batch: list) -> list:
+    """
+    Saves a sequence of conversation items (user question, tool calls, tool responses, model response)
+    to the database in a single atomic transaction.
+    :param user_id: User's ID
+    :param content_batch: list of Content objects to record to the database, in the order they should be committed.
+    :return: a list of the elements inserted into the DB
+    """
+    if not content_batch:
+        return []
+
+    # Prepare parameter tuples for bulk insertion: (user_id, role, jsonb_content)
+    records_to_insert = []
+    for item in content_batch:
+        content_dict = item.to_dict() if hasattr(item, "to_dict") else item
+        role = content_dict.get("role", "user")
+        records_to_insert.append((user_id, role, json.dumps(content_dict)))
+
+    query = """
+        INSERT INTO conversation_history (user_id, role, content)
+        VALUES %s
+        RETURNING id, user_id, role, content, created_at;
+    """
+    with get_db_cursor() as cur:
+        execute_values(
+            cur,
+            query,
+            records_to_insert,
+            template="(%s, %s, %s::jsonb)"
+        )
+        saved_records = cur.fetchall()
+        logging.debug(f"Saved batch of {len(saved_records)} records for user_id {user_id}")
+
+    return [dict(r) for r in saved_records]
 
 
 def load_history_from_db(user_id: str, limit: int = 50, session_hours: int = 4) -> list[types.Content]:
