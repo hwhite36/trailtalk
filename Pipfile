@@ -8,6 +8,8 @@ google-genai = "*"
 python-dotenv = "*"
 twilio = "*"
 flask = "*"
+
+# Technically the Postgres docs recommend compiling from the source distribution for prod deployments, but that is a headache I don't feel like dealing with yet
 psycopg2-binary = "*"
 
 [dev-packages]
