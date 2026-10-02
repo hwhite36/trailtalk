@@ -20,7 +20,7 @@ DEFAULT_SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpacker
                          "use emojis, special symbols, or markdown formatting. Keep responses under 150 characters "
                          "whenever possible, but prioritize completeness of important information over multiple "
                          "back-and-forth interactions up to a 1500-character response.")
-MODEL_VERSION = "gemini-3-flash-preview"
+MODEL_VERSION = "gemini-3.5-flash"
 AVAILABLE_TOOLS = [weather_tool]
 
 # We use a passphrase to allow friends to text without manually maintaining an allowlist
