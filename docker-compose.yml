@@ -3,6 +3,28 @@ version: '3.8'
 services:
   trailtalk:
     build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/trailtalk
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - SMS_PASSPHRASE=${SMS_PASSPHRASE}
+    depends_on:
+      - db
+    restart: unless-stopped
 
   db:
     image: postgres:18-alpine
+    environment:
+      - POSTGRES_DB=trailtalk
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
