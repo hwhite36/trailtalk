@@ -206,5 +206,4 @@ if __name__ == "__main__":
     # Run locally for testing
     # Real production deployment is handled by Gunicorn + Nginx
     #app.run(port=3000, debug=True)
-    test_response = handle_message_response("What's the weather for 38.889484, -77.035278?", "harrison")
-    logging.info(test_response)
+    pass
