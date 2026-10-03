@@ -2,7 +2,7 @@
 
 **Effective Date:**  October 2, 2026
 
-This Privacy Policy outlines how we collect, use, and protect your information when you interact with this specific, self-hosted instance operated by the repository administrator of TrailTalk, an automated SMS assistant service designed for outdoor navigation, weather updates, and backcountry support. In this document, "we," "us," or "our" refers specifically to the individual administrator hosting this private instance of the app.
+This Privacy Policy outlines how we collect, use, and protect your information when you interact with this closed-beta deployment managed by the independent developer / repository administrator of TrailTalk, an automated SMS assistant service designed for outdoor navigation, weather updates, and backcountry support. In this document, "we," "us," or "our" refers specifically to the independent developer hosting this private, closed-beta instance of the app.
 
 ##### 1. Information We Collect
 

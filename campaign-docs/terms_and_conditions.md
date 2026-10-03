@@ -1,15 +1,15 @@
 ### Terms and Conditions (Terms of Service)
 **Effective Date:**  October 2, 2026
 
-Welcome to this private instance of TrailTalk! By texting our number or using our service, you agree to be bound by these Terms and Conditions ("Terms"). Please note that these terms apply specifically to the closed instance of the open-source TrailTalk project operated by the repo administrator. There is no publicly-accessible version of TrailTalk currently running. If you do not agree, please do not use the service.
+Welcome to this private, closed-beta of TrailTalk! By texting our number or using our service, you agree to be bound by these Terms and Conditions ("Terms"). Please note that these terms apply specifically to this specific closed-beta instance of the open-source TrailTalk project operated by the repo administrator as an independent developer. There is no publicly-accessible version of TrailTalk currently running. If you do not agree, please do not use the service.
 
 ##### 1. Program Description
-TrailTalk provides automated, AI-assisted text responses for campers, backpackers, and outdoor enthusiasts. This service is a private, invitation-only hobbyist deployment, not a commercial public product. Services include fetching weather reports, backcountry advice, and general conversational assistance via SMS.
+TrailTalk provides automated, AI-assisted text responses for campers, backpackers, and outdoor enthusiasts. Services include fetching weather reports, backcountry advice, and general conversational assistance via SMS.
 
 ##### 2. SMS Messaging Terms & Disclosures
-*   **Opt-In:**  Users opt in by sending an initial passphrase text message to the TrailTalk phone number shared with them in-person or via private channels.
-*   **Opt-Out:**  You can cancel the SMS service at any time by texting  **STOP** . After texting  **STOP** , you will receive a single final confirmation message, and no further messages will be sent unless you re-initiate contact.
-*   **Help:**  For assistance, create a GitHub Issue on our repository page here:  **[Submit a Support Issue on GitHub](https://github.com/hwhite36/trailtalk/issues)**   *(Note: A free GitHub account is required to open an issue.)*
+*   **Opt-In:**  Users opt in by sending an initial passphrase text message to the TrailTalk phone number shared with them.
+*   **Opt-Out:**  You can cancel the SMS service at any time by texting **STOP**. After texting **STOP**, you will receive a single final confirmation message, and no further messages will be sent unless you re-initiate contact.
+*   **Help:**  For assistance, create a GitHub Issue on our repository page here: **[Submit a Support Issue on GitHub](https://github.com/hwhite36/trailtalk/issues)**  *(Note: A free GitHub account is required to open an issue.)*
 *   **Message & Data Rates:**  Message and data rates may apply for any messages sent to or received from us, according to your mobile carrier's plan.
 *   **Message Frequency:**  Message frequency varies depending on how frequently you text the service.
 
