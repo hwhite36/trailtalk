@@ -1,7 +1,7 @@
 ### Terms and Conditions (Terms of Service)
 **Effective Date:**  October 2, 2026
 
-Welcome to this private instance of TrailTalk! By texting our number or using our service, you agree to be bound by these Terms and Conditions ("Terms"). Please note that these terms apply specifically to this personally hosted instance of the open-source TrailTalk project. There is no publicly-accessible version of TrailTalk currently running; this document governs only the private node managed by the administrator. If you do not agree, please do not use the service.
+Welcome to this private instance of TrailTalk! By texting our number or using our service, you agree to be bound by these Terms and Conditions ("Terms"). Please note that these terms apply specifically to the closed instance of the open-source TrailTalk project operated by the repo administrator. There is no publicly-accessible version of TrailTalk currently running. If you do not agree, please do not use the service.
 
 ##### 1. Program Description
 TrailTalk provides automated, AI-assisted text responses for campers, backpackers, and outdoor enthusiasts. This service is a private, invitation-only hobbyist deployment, not a commercial public product. Services include fetching weather reports, backcountry advice, and general conversational assistance via SMS.
