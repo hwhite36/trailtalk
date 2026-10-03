@@ -27,6 +27,13 @@ You will also need API keys for Gemini and Twilio, and an active Twilio number t
 3. Bring the TrailTalk container and database up by running `docker compose up -d`
 4. Ensure functionality via log inspection with `docker compose logs`
 
+### Running on development machines
+1. Create a venv and install the Pipfile dependencies:
+```commandline
+
+```
+2. 
+
 ## Messaging Campaigns
 
 
