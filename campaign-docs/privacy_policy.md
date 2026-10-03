@@ -28,6 +28,8 @@ We use your information exclusively to:
 
 **We respect your privacy.**  Mobile information, phone numbers, and SMS opt-in consent will **NOT** be shared, sold, rented, or disclosed to third parties or affiliates for marketing or promotional purposes under any circumstances.
 
+To further specify and make abundantly clear, we do not sell or share your SMS opt-in data or personal information with third parties for marketing purposes.
+
 ##### 4. Data Storage and Security
 
 Conversation records and user data are securely stored in our backend database, which operates as a parallel PostgreSQL Docker container deployed on personally managed, self-hosted infrastructure rather than a corporate cloud environment. We employ standard technical safeguards to protect your personal information against unauthorized access, loss, or misuse.
