@@ -205,9 +205,37 @@ def get_or_create_user(phone_num: str) -> dict:
             VALUES (%s)
             ON CONFLICT (phone_number) 
             DO UPDATE SET phone_number = EXCLUDED.phone_number
-            RETURNING id, phone_number, created_at;
+            RETURNING id, phone_number, created_at, is_opted_out, opted_out_at;
             """,
             (phone_num,)
         )
         new_user = cur.fetchone()
         return dict(new_user)
+
+def update_user_opt_out_status(user_id: int, opt_out: bool) -> None:
+    """
+    Sets the opt-out status for a user.
+    When opting out, records the opt_out_at timestamp.
+    When re-subscribing (opt_out=False), clears opted_out_at.
+    """
+    with get_db_cursor() as cur:
+        if opt_out:
+            cur.execute(
+                """
+                UPDATE users 
+                SET is_opted_out = TRUE, 
+                    opted_out_at = CURRENT_TIMESTAMP
+                WHERE id = %s;
+                """,
+                (user_id,)
+            )
+        else:
+            cur.execute(
+                """
+                UPDATE users 
+                SET is_opted_out = FALSE, 
+                    opted_out_at = NULL
+                WHERE id = %s;
+                """,
+                (user_id,)
+            )

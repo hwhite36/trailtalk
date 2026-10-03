@@ -12,22 +12,14 @@ from twilio.twiml.messaging_response import MessagingResponse
 from twilio.request_validator import RequestValidator
 from get_weather import weather_tool, get_weather
 from logger import setup_logging
+from constants import *
 from db import (init_db_pool, init_db_schema, check_if_user_exists, get_or_create_user, load_history_from_db,
-                save_convo_batch_to_db)
+                save_convo_batch_to_db, update_user_opt_out_status)
 
-DEFAULT_SYSTEM_PROMPT = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are messaging "
-                         "you from the backcountry. Your responses will be sent via SMS. Be extremely concise. Do not "
-                         "use emojis, special symbols, or markdown formatting. Keep responses under 150 characters "
-                         "whenever possible, but prioritize completeness of important information over multiple "
-                         "back-and-forth interactions up to a 1500-character response.")
-MODEL_VERSION = "gemini-3.5-flash"
 AVAILABLE_TOOLS = [weather_tool]
 
 # We use a passphrase to allow friends to text without manually maintaining an allowlist
 SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
-
-ERROR_REPLY_MODEL_DOWN = "TrailTalk encountered an error when trying to communicate with the LLM. Please try again later."
-ERROR_REPLY_5XX = "TrailTalk encountered an internal error. Please consider reporting this on GitHub."
 
 app = Flask(__name__)
 setup_logging(app)
@@ -67,23 +59,45 @@ def reply_sms():
     :return: A MessagingResponse object, which is empty if we don't want to respond
     """
     sender_phone_num = request.values.get('From')
-    sender_message = request.values.get('Body', None)
+    user_message = request.values.get('Body', None)
     resp = MessagingResponse()
 
     user_exists = check_if_user_exists(sender_phone_num)
 
-    if user_exists or sender_message.upper() == SMS_PASSPHRASE:
+    if user_exists or user_message.upper() == SMS_PASSPHRASE:
         user_obj = get_or_create_user(sender_phone_num)
+
+        # User opt-out flow
+        if user_message.upper() == "STOP":
+            update_user_opt_out_status(user_obj['user_id'], True)
+            logging.info(f"User {user_obj['id']} has opted out")
+            response_text = getenv("OPT_OUT_RESPONSE", OPT_OUT_RESPONSE)
+            resp.message(response_text)
+            return str(resp)
+
+        if user_obj['is_opted_out']:
+            # Allow resubscription
+            if user_message.upper() == "START":
+                update_user_opt_out_status(user_obj['user_id'], False)
+                logging.info(f"User {user_obj['id']} has opted back in")
+                response_text = getenv("RE_OPT_IN_RESPONSE", RE_OPT_IN_RESPONSE)
+                resp.message(response_text)
+                return str(resp)
+            else:
+                # Empty response to confirm receipt but not reply
+                logging.info(f"User {user_obj['id']} messaged but is opted out; ignoring")
+                return str(resp)
+
+        # New user flow delivers a hardcoded message
         if not user_exists:
-            response_text = getenv("NEW_USER_RESPONSE",
-                                   "Welcome to TrailTalk! You are now registered. Reply to begin chatting.")
+            response_text = getenv("NEW_USER_RESPONSE", NEW_USER_RESPONSE)
             logging.info(f"New user {user_obj['id']} created")
             resp.message(response_text)
             return str(resp)
 
         # For returning users, load the prior convo history and handle response from there
         prior_convo_history = load_history_from_db(user_obj['id'])
-        response_text = handle_message_response(sender_message, user_obj['id'], prior_convo_history)
+        response_text = handle_message_response(user_message, user_obj['id'], prior_convo_history)
         resp.message(response_text)
 
     return str(resp) # if this is an empty response, it indicates our reception of the message without sending a reply
@@ -100,10 +114,10 @@ def ping_gemini(convo_history: list, tools_to_exclude: typing.List[types.Tool] |
     tools_to_exclude = tools_to_exclude or []
 
     response = gemini_client.models.generate_content(
-        model=MODEL_VERSION,
+        model=getenv("MODEL_VERSION", MODEL_VERSION),
         contents=convo_history,
         config=types.GenerateContentConfig(
-            system_instruction=getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT),
+            system_instruction=getenv("LLM_SYSTEM_PROMPT", LLM_SYSTEM_PROMPT),
             tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
         )
     )

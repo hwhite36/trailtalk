@@ -1,7 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     phone_number VARCHAR(20) UNIQUE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- A2P 10DLC compliance by maintaining opt-out list
+    is_opted_out BOOLEAN NOT NULL DEFAULT FALSE,
+    opted_out_at TIMESTAMP WITH TIME ZONE,
 );
 
 CREATE TABLE IF NOT EXISTS conversation_history (
