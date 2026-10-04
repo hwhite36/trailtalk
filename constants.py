@@ -9,6 +9,6 @@ MODEL_VERSION: str = "gemini-3.5-flash"
 # Non-generated text message responses
 ERROR_REPLY_MODEL_DOWN: str = "TrailTalk encountered an error when trying to communicate with the LLM. Please try again later."
 ERROR_REPLY_5XX: str = "TrailTalk encountered an internal error. Please consider reporting this on GitHub."
-NEW_USER_RESPONSE: str = "TrailTalk: Welcome! You are now registered. Reply to begin chatting. Msg & data rates may apply. Reply STOP to cancel."
+NEW_USER_RESPONSE: str = "Welcome! You are now registered. Reply to begin chatting. By replying, you agree to receive text messages from TrailTalk. Msg & data rates may apply. Reply STOP to cancel."
 OPT_OUT_RESPONSE: str = "TrailTalk: You have successfully unsubscribed and will receive no further messages. Reply START to resubscribe."
 RE_OPT_IN_RESPONSE: str = "TrailTalk: Welcome back! You are resubscribed. Reply to begin chatting. Msg & data rates may apply. Reply STOP to cancel."
