@@ -12,3 +12,4 @@ ERROR_REPLY_5XX: str = "TrailTalk encountered an internal error. Please consider
 NEW_USER_RESPONSE: str = "Welcome! You are now registered. Reply to begin chatting. By replying, you agree to receive text messages from TrailTalk. Msg & data rates may apply. Reply STOP to cancel."
 OPT_OUT_RESPONSE: str = "TrailTalk: You have successfully unsubscribed and will receive no further messages. Reply START to resubscribe."
 RE_OPT_IN_RESPONSE: str = "TrailTalk: Welcome back! You are resubscribed. Reply to begin chatting. Msg & data rates may apply. Reply STOP to cancel."
+HELP_RESPONSE: str = "To use TrailTalk, reply to this message with the outdoors-related assistance you would like. Examples: fetch the weather for specific coordinates, help with water filter usage, etc. Msg & data rates may apply. Reply STOP to cancel."
