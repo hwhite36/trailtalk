@@ -9,7 +9,7 @@ This page outlines the official Call-to-Action (CTA) and opt-in instructions for
 ## How to Join the Closed Beta
 Access to TrailTalk is currently restricted to authorized beta testers. Because this is a private software deployment, access to this beta is subject to the administrator's discretion. 
 
-1. Request to join the beta by creating a [**GitHub Issue**](https://github.com/hwhite36/trailtalk/issues) on this repository containing why you want to join the beta, an email address to get in touch with you, and an acknowledgement that you recognize that this product is a closed beta and that you will not share access with anyone else and you will report bugs on GitHub.
+1. Request to join the beta by creating a [**GitHub Issue**](https://github.com/hwhite36/trailtalk/issues) on this repository containing why you want to join the beta, an email address to get in touch with you, and an acknowledgement that you recognize that this product is a closed beta and that you will not share access with anyone else.
 2. The administrator will review your request and reply to your GitHub issue indicating if your request has been approved or denied.
 3. If your request is approved by the administrator, you will receive an email to the address you provided containing the closed beta passphrase and TrailTalk phone number.
 4. Text the provided passphrase to the provided number, thereby completing your opt-in to the beta, and ensure you receive an immediate response.
