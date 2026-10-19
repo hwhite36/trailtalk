@@ -68,10 +68,17 @@ def reply_sms():
         user_obj = get_or_create_user(sender_phone_num)
 
         # User opt-out flow
-        if user_message.upper() == "STOP":
+        if user_message.upper() == "STOP" or user_message.upper() == "UNSUBSCRIBE":
             update_user_opt_out_status(user_obj['user_id'], True)
             logging.info(f"User {user_obj['id']} has opted out")
             response_text = getenv("OPT_OUT_RESPONSE", OPT_OUT_RESPONSE)
+            resp.message(response_text)
+            return str(resp)
+
+        # Required HELP keyword flow
+        if user_message.upper() == "HELP":
+            logging.info(f"User {user_obj['id']} has used the HELP keyword, sending hardcoded help description...")
+            response_text = getenv("HELP_RESPONSE", HELP_RESPONSE)
             resp.message(response_text)
             return str(resp)
 

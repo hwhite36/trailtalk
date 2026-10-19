@@ -40,7 +40,7 @@ We utilize infrastructure providers (such as Twilio for SMS processing and Googl
 
 ##### 6. Your Rights & Opting Out
 
-You can stop receiving messages or remove your number from our active service at any time by replying **STOP** to any message.
+You can stop receiving messages or remove your number from our active service at any time by replying **STOP** or **UNSUBSCRIBE** to any message.
 
 ##### 7. Contact Us
 
