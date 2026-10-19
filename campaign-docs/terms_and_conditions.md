@@ -8,7 +8,7 @@ TrailTalk provides automated, AI-assisted text responses for campers, backpacker
 
 ##### 2. SMS Messaging Terms & Disclosures
 *   **Opt-In:**  Users opt in by sending an initial passphrase text message to the TrailTalk phone number shared with them.
-*   **Opt-Out:**  You can cancel the SMS service at any time by texting **STOP**. After texting **STOP**, you will receive a single final confirmation message, and no further messages will be sent unless you re-initiate contact.
+*   **Opt-Out:**  You can cancel the SMS service at any time by texting **STOP** (or **UNSUBSCRIBE**). After texting **STOP**, you will receive a single final confirmation message, and no further messages will be sent unless you re-initiate contact.
 *   **Help:**  For assistance, create a GitHub Issue on our repository page here: **[Submit a Support Issue on GitHub](https://github.com/hwhite36/trailtalk/issues)**  *(Note: A free GitHub account is required to open an issue.)*
 *   **Message & Data Rates:**  Message and data rates may apply for any messages sent to or received from us, according to your mobile carrier's plan.
 *   **Message Frequency:**  Message frequency varies depending on how frequently you text the service.
