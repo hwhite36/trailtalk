@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   trailtalk:
     build: .
@@ -23,8 +21,21 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql # Runs schema.sql automatically when volume first comes up
     restart: unless-stopped
+
+  # Uncomment for local testing
+#  ngrok:
+#    image: ngrok/ngrok:latest
+#    restart: unless-stopped
+#    command:
+#      - "http"
+#      - "http://host.docker.internal:8000"
+#    ports:
+#      - "4040:4040" # For the ngrok dashboard
+#    environment:
+#      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
 
 volumes:
   pgdata:
