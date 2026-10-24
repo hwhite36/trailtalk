@@ -1,5 +1,6 @@
 import json
 import psycopg2
+from psycopg2 import pool
 from psycopg2.extras import RealDictCursor, execute_values
 import logging
 from pathlib import Path

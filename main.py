@@ -13,7 +13,7 @@ from twilio.request_validator import RequestValidator
 from get_weather import weather_tool, get_weather
 from logger import setup_logging
 from constants import *
-from db import (init_db_pool, init_db_schema, check_if_user_exists, get_or_create_user, load_history_from_db,
+from db import (init_db_pool, check_if_user_exists, get_or_create_user, load_history_from_db,
                 save_convo_batch_to_db, update_user_opt_out_status)
 
 AVAILABLE_TOOLS = [weather_tool]
@@ -24,7 +24,6 @@ SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 app = Flask(__name__)
 setup_logging(app)
 init_db_pool()
-init_db_schema()
 gemini_client = genai.Client(api_key=getenv("GEMINI_API_KEY"))
 
 

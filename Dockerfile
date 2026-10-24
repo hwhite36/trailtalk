@@ -15,12 +15,5 @@ COPY . .
 
 EXPOSE 8000
 
-# Run Gunicorn with info logging routed to stdout/stderr so Docker picks them up
-# TODO consider adding threads if needed
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:8000", \
-     "--workers", "4", \
-     "--log-level", "info", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "main:app"]
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
