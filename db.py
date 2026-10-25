@@ -49,6 +49,9 @@ def get_db_cursor():
 
 
 def init_db_schema():
+    """
+    Unused for now, as we initialize the DB schema natively in the DB container -- see docker-compose.yml
+    """
     schema_path = Path(__file__).parent / "schema.sql"
     if not schema_path.exists():
         logging.error(f"Schema file not found at {schema_path}")
@@ -63,6 +66,11 @@ def init_db_schema():
 
 
 def byte_data_serializer(obj):
+    """
+    Convert raw bytes into something that can be saved to the database. Intended to be passed as a helper function
+    to json.dumps().
+    :param obj: the bytes object to serialize
+    """
     if isinstance(obj, bytes):
         try:
             # Try decoding as a UTF-8 string first
@@ -189,6 +197,11 @@ def load_history_from_db(user_id: str, limit: int = 50, session_hours: int = 4) 
 
 
 def check_if_user_exists(phone_num: str) -> bool:
+    """
+    Check if a user associated with the given phone number exists in our database.
+    :param phone_num: Sender's phone number
+    :return: true if the user exists, false otherwise
+    """
     with get_db_cursor() as cur:
         cur.execute(
             """
