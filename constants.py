@@ -4,7 +4,7 @@ LLM_SYSTEM_PROMPT: str = ("You are an SMS-based assistant for campers, backpacke
                               "concise. Do not use emojis, special symbols, or markdown formatting. Keep responses "
                               "under 150 characters whenever possible, but prioritize completeness of important "
                               "information over multiple back-and-forth interactions up to a 1500-character response.")
-MODEL_VERSION: str = "gemini-3.5-flash"
+MODEL_VERSION: str = "gemini-3.8-flash"
 
 # Non-generated text message responses
 ERROR_REPLY_MODEL_DOWN: str = "TrailTalk encountered an error when trying to communicate with the LLM. Please try again later."
