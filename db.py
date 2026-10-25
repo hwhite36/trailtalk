@@ -1,4 +1,5 @@
 import json
+import base64
 import psycopg2
 from psycopg2 import pool
 from psycopg2.extras import RealDictCursor, execute_values
@@ -61,6 +62,17 @@ def init_db_schema():
     logging.info("Database schema initialized successfully.")
 
 
+def byte_data_serializer(obj):
+    if isinstance(obj, bytes):
+        try:
+            # Try decoding as a UTF-8 string first
+            return obj.decode('utf-8')
+        except UnicodeDecodeError:
+            # Fallback to base64 string if it's raw binary data
+            return base64.b64encode(obj).decode('utf-8')
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
 def save_convo_content_to_db(user_id: str, content: types.Content) -> dict:
     """
     Saves a single conversation element to the database.
@@ -68,7 +80,7 @@ def save_convo_content_to_db(user_id: str, content: types.Content) -> dict:
     :param content: the conversation Content object to be saved
     :return: a dictionary of the element inserted into the DB
     """
-    content_dict = content.to_dict() if hasattr(content, "to_dict") else content
+    content_dict = content.model_dump() if hasattr(content, "model_dump") else content
     role = content_dict.get("role", "user")
 
     with get_db_cursor() as cur:
@@ -78,7 +90,7 @@ def save_convo_content_to_db(user_id: str, content: types.Content) -> dict:
             VALUES (%s, %s, %s::jsonb)
             RETURNING id, user_id, role, content, created_at;
             """,
-            (user_id, role, json.dumps(content_dict))
+            (user_id, role, json.dumps(content_dict, default=byte_data_serializer))
         )
         record = cur.fetchone()
         logging.debug(f"Saved conversation record ID {record['id']} for user_id {user_id}")
@@ -99,9 +111,9 @@ def save_convo_batch_to_db(user_id: str, content_batch: list) -> list:
     # Prepare parameter tuples for bulk insertion: (user_id, role, jsonb_content)
     records_to_insert = []
     for item in content_batch:
-        content_dict = item.to_dict() if hasattr(item, "to_dict") else item
+        content_dict = item.model_dump() if hasattr(item, "model_dump") else item
         role = content_dict.get("role", "user")
-        records_to_insert.append((user_id, role, json.dumps(content_dict)))
+        records_to_insert.append((user_id, role, json.dumps(content_dict, default=byte_data_serializer)))
 
     query = """
         INSERT INTO conversation_history (user_id, role, content)
