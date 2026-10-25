@@ -239,7 +239,7 @@ def get_or_create_user(phone_num: str) -> dict:
         new_user = cur.fetchone()
         return dict(new_user)
 
-def update_user_opt_out_status(user_id: int, opt_out: bool) -> None:
+def update_user_opt_out_status(id: int, opt_out: bool) -> None:
     """
     Sets the opt-out status for a user.
     When opting out, records the opt_out_at timestamp.
@@ -254,7 +254,7 @@ def update_user_opt_out_status(user_id: int, opt_out: bool) -> None:
                     opted_out_at = CURRENT_TIMESTAMP
                 WHERE id = %s;
                 """,
-                (user_id,)
+                (id,)
             )
         else:
             cur.execute(
@@ -264,5 +264,5 @@ def update_user_opt_out_status(user_id: int, opt_out: bool) -> None:
                     opted_out_at = NULL
                 WHERE id = %s;
                 """,
-                (user_id,)
+                (id,)
             )
