@@ -50,6 +50,7 @@ def get_db_cursor():
 
 def init_db_schema():
     """
+    Initializes the database tables and indices.
     Unused for now, as we initialize the DB schema natively in the DB container -- see docker-compose.yml
     """
     schema_path = Path(__file__).parent / "schema.sql"
