@@ -74,7 +74,7 @@ def reply_sms():
 
         # User opt-out flow
         if user_message.upper() == "STOP" or user_message.upper() == "UNSUBSCRIBE":
-            update_user_opt_out_status(user_obj['user_id'], True)
+            update_user_opt_out_status(user_obj['id'], True)
             logging.info(f"User {user_obj['id']} has opted out")
             response_text = getenv("OPT_OUT_RESPONSE", OPT_OUT_RESPONSE)
             resp.message(response_text)
@@ -90,7 +90,7 @@ def reply_sms():
         if user_obj['is_opted_out']:
             # Allow resubscription
             if user_message.upper() == "START":
-                update_user_opt_out_status(user_obj['user_id'], False)
+                update_user_opt_out_status(user_obj['id'], False)
                 logging.info(f"User {user_obj['id']} has opted back in")
                 response_text = getenv("RE_OPT_IN_RESPONSE", RE_OPT_IN_RESPONSE)
                 resp.message(response_text)
@@ -110,6 +110,7 @@ def reply_sms():
         # For returning users, load the prior convo history and handle response from there
         prior_convo_history = load_history_from_db(user_obj['id'])
         response_text = handle_message_response(user_message, user_obj['id'], prior_convo_history)
+        logging.info(f"Message received from existing user {user_obj['id']}")
         resp.message(response_text)
 
     return str(resp) # if this is an empty response, it indicates our reception of the message without sending a reply
@@ -149,6 +150,7 @@ def record_tool_execution(model_request_content, tool_name: str, tool_result, pr
     :param prior_convo_history: prior conversation history that's being fed to the model; updated alongside DB convo history
     :param uncommitted_convo: user + tool Content that hasn't been committed to the DB yet
     """
+    logging.info(f"Tool {tool_name} called by Gemini")
     tool_result_content = types.Content(
         role="user",
         parts=[types.Part.from_function_response(name=tool_name, response=tool_result)],
