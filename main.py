@@ -213,10 +213,3 @@ def handle_message_response(message: str, user_id: str, prior_convo_history: lis
     uncommitted_convo.append(model_content)
     save_convo_batch_to_db(user_id, uncommitted_convo)
     return response.text
-
-
-if __name__ == "__main__":
-    # Run locally for testing
-    # Real production deployment is handled by Gunicorn + Nginx
-    #app.run(port=3000, debug=True)
-    pass
