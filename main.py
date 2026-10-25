@@ -9,6 +9,7 @@ import typing
 from functools import wraps
 from flask import Flask, request, abort
 from twilio.twiml.messaging_response import MessagingResponse
+from werkzeug.middleware.proxy_fix import ProxyFix
 from twilio.request_validator import RequestValidator
 from get_weather import weather_tool, get_weather
 from logger import setup_logging
@@ -22,6 +23,11 @@ AVAILABLE_TOOLS = [weather_tool]
 SMS_PASSPHRASE = getenv("SMS_PASSPHRASE")
 
 app = Flask(__name__)
+# Trust proxy headers coming from ngrok / load balancers, otherwise the Twilio request validator doesn't work
+app.wsgi_app = ProxyFix(
+    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
+)
+
 setup_logging(app)
 init_db_pool()
 gemini_client = genai.Client(api_key=getenv("GEMINI_API_KEY"))
@@ -118,13 +124,14 @@ def ping_gemini(convo_history: list, tools_to_exclude: typing.List[types.Tool] |
     :return: Response from the model
     """
     tools_to_exclude = tools_to_exclude or []
+    active_tools = [tool for tool in AVAILABLE_TOOLS if tool not in tools_to_exclude]
 
     response = gemini_client.models.generate_content(
         model=getenv("MODEL_VERSION", MODEL_VERSION),
         contents=convo_history,
         config=types.GenerateContentConfig(
             system_instruction=getenv("LLM_SYSTEM_PROMPT", LLM_SYSTEM_PROMPT),
-            tools=list(set(AVAILABLE_TOOLS) - set(tools_to_exclude))
+            tools=active_tools
         )
     )
     return response
