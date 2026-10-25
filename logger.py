@@ -9,19 +9,22 @@ def setup_logging(app):
     """
     logger = logging.getLogger()
 
+    # Prevent duplicate handlers if setup_logging is called multiple times
+    if logger.handlers:
+        logger.handlers.clear()
+
     # Log to stdout for Docker
     stream_handler = logging.StreamHandler(sys.stdout)
-
     formatter = logging.Formatter(
         '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
     )
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
 
-    # Redirect Gunicorn/Flask logs to root logger as well
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    logger.handlers.extend(gunicorn_logger.handlers)
+    # Sync Flask's app logger with the root logger
+    app.logger.handlers = logger.handlers
+    app.logger.propagate = True
 
-    # set log level based on gunicorn setting
+    # Set log level based on Gunicorn's setting
+    gunicorn_logger = logging.getLogger('gunicorn.error')
     logger.setLevel(gunicorn_logger.level)
