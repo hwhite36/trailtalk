@@ -93,6 +93,12 @@ and will likely need to be edited for your campaign to be approved.
 
 Once your campaign is approved, your phone number is finally cleared to send and receive messages, and you can hook it up to your application in the Twilio dashboard!
 
+### A note about Twilio's behind-the-scenes denylist and automatic responses
+In my testing, I noticed that when I used certain keywords (START/STOP in particular), I would receive a message response body that
+didn't originate from my code. This is how I discovered that Twilio operates a secondary layer of defense around the START/STOP keywords via their own denylist, and their own hardcoded carrier-compliant responses to these keywords.
+- If the incoming message is STOP, Twilio will deliver it to your app, but they will then put the number on their own denylist and will not forward any more messages back to them. They will continue to deliver any more messages that the user sends to your app, but if your app keeps generating responses and trying to send them back, it will just not deliver them back to the user.
+- If the incoming message is START, then the user is removed from Twilio's denylist and it will allow your app to resume sending messages to the number. Sometimes it will even send the backlogged messages that failed to deliver before (I noticed this once in my testing).
+
 ## Potential future features
 - Set up additional tools (news fetcher, ?)
 - Add support for locally running model / other models
