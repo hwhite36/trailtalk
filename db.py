@@ -8,6 +8,7 @@ from pathlib import Path
 from os import getenv
 from contextlib import contextmanager
 from google.genai import types
+from datetime import datetime, timedelta, timezone
 
 db_pool = None
 
@@ -266,3 +267,39 @@ def update_user_opt_out_status(id: int, opt_out: bool) -> None:
                 """,
                 (id,)
             )
+
+
+def check_user_rate_limit(user_id: int, max_messages: int = 8, window_seconds: int = 120) -> bool:
+    """
+    Checks if a user has exceeded the rate limit by counting their recent 'user'
+    role messages in the conversation_history table within a rolling time window.
+    Note this will also count model tool calls, since those are stored as user-generated messages.
+
+    :param user_id: The primary key ID of the user
+    :param max_messages: Maximum allowed messages in the window
+    :param window_seconds: The lookback time window in seconds
+    :return: True if the user is under the limit, False if rate-limited.
+    """
+    try:
+        with get_db_cursor() as cur:
+            window_start = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
+
+            cur.execute(
+                """
+                SELECT COUNT(*) 
+                FROM conversation_history 
+                WHERE user_id = %s 
+                  AND role = 'user' 
+                  AND created_at >= %s
+                """,
+                (user_id, window_start)
+            )
+            result = cur.fetchone()
+            message_count = result[0] if result else 0
+
+            return message_count < max_messages
+
+    except Exception as e:
+        logging.error(f"Error checking rate limit for user {user_id}: {e}")
+        # Allow message if the DB query errors out
+        return True
