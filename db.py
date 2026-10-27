@@ -268,7 +268,7 @@ def update_user_opt_out_status(id: int, opt_out: bool) -> None:
             )
 
 
-def check_user_rate_limit(user_id: int, max_messages: int = 8, window_seconds: int = 120) -> bool:
+def check_user_rate_limit(user_id: int, max_messages: int = 10, window_seconds: int = 300) -> bool:
     """
     Checks if a user has exceeded the rate limit by counting their recent 'user'
     role messages in the conversation_history table within a rolling time window.
