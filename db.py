@@ -285,7 +285,7 @@ def check_user_rate_limit(user_id: int, max_messages: int = 8, window_seconds: i
 
             cur.execute(
                 """
-                SELECT COUNT(*) 
+                SELECT COUNT(*) as message_count
                 FROM conversation_history 
                 WHERE user_id = %s 
                   AND role = 'user' 
@@ -294,7 +294,7 @@ def check_user_rate_limit(user_id: int, max_messages: int = 8, window_seconds: i
                 (user_id, window_start)
             )
             result = cur.fetchone()
-            message_count = result[0] if result else 0
+            message_count = result['message_count'] if result and 'message_count' in result else 0
 
             return message_count < max_messages
 
