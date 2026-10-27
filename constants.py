@@ -1,15 +1,25 @@
 # LLM configuration
 LLM_SYSTEM_PROMPT: str = ("You are an SMS-based assistant for campers, backpackers, and survivalists that are "
-                              "messaging you from the backcountry. Your responses will be sent via SMS. Be extremely "
-                              "concise. Do not use emojis, special symbols, or markdown formatting. Keep responses "
-                              "under 150 characters whenever possible, but prioritize completeness of important "
-                              "information over multiple back-and-forth interactions up to a 1500-character response.")
+                          "messaging you from the backcountry. Your responses will be sent via SMS. Be extremely "
+                          "concise. Do not use emojis, special symbols, or markdown formatting. Keep responses under "
+                          "150 characters whenever possible, but prioritize completeness of important information over "
+                          "multiple back-and-forth interactions up to a 1500-character response. You have access to a "
+                          "get_weather tool. Only invoke get_weather when the user explicitly asks for weather "
+                          "conditions, forecasts, or meteorological data for a specific location. For general knowledge "
+                          "questions, casual conversation, or unrelated queries, answer directly without mentioning "
+                          "weather.")
 MODEL_VERSION: str = "gemini-3.8-flash"
 
 # Non-generated text message responses
 ERROR_REPLY_MODEL_DOWN: str = "TrailTalk encountered an error when trying to communicate with the LLM. Please try again later."
 ERROR_REPLY_5XX: str = "TrailTalk encountered an internal error. Please consider reporting this on GitHub."
-NEW_USER_RESPONSE: str = "Welcome! You are now registered. Reply to begin chatting. By replying, you agree to receive text messages from TrailTalk. Msg & data rates may apply. Reply STOP to cancel, HELP for help."
-OPT_OUT_RESPONSE: str = "TrailTalk: You have successfully unsubscribed and will receive no further messages. Reply START to resubscribe."
-RE_OPT_IN_RESPONSE: str = "TrailTalk: Welcome back! You are resubscribed. Reply to begin chatting. Msg & data rates may apply. Reply STOP to cancel, HELP for help."
-HELP_RESPONSE: str = "To use TrailTalk, reply to this message with the outdoors-related assistance you would like. Examples: fetch the weather for specific coordinates, help with water filter usage, etc. Msg & data rates may apply. Reply STOP to cancel."
+NEW_USER_RESPONSE: str = ("Welcome! You are now registered. Reply to begin chatting. By replying, you agree to "
+                          "receive text messages from TrailTalk. Msg & data rates may apply. Reply STOP to cancel, "
+                          "HELP for help.")
+OPT_OUT_RESPONSE: str = ("TrailTalk: You have successfully unsubscribed and will receive no further messages. Reply "
+                         "START to resubscribe.")
+RE_OPT_IN_RESPONSE: str = ("TrailTalk: Welcome back! You are resubscribed. Reply to begin chatting. Msg & data rates "
+                           "may apply. Reply STOP to cancel, HELP for help.")
+HELP_RESPONSE: str = ("To use TrailTalk, reply to this message with the outdoors-related assistance you would like. "
+                      "Examples: fetch the weather for specific coordinates, help with water filter usage, etc. "
+                      "Msg & data rates may apply. Reply STOP to cancel.")

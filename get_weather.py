@@ -6,7 +6,8 @@ import logging
 get_weather_declaration = {
     "name": "get_weather",
     "description": "Fetch the hourly and week's weather forecast for a specific location defined via latitude and "
-                   "longitude coordinates",
+                   "longitude coordinates when a user explicitly requests a weather forecast or outdoor conditions "
+                   "for a specific geographic location.",
     "parameters": {
         "type": "object",
         "properties": {
