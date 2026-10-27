@@ -6,10 +6,10 @@ This repo contains only the code and instructions to deploy a self-hosted versio
 ## Features
 - Lightweight, SMS-optimized responses built with limited connection in mind
 - Full general knowledge and conversational abilities of Gemini Flash 3.8
-- Designed for self-hosting, modularity, and customizability, with overwritable model settings + SMS configurations via `.env` and a clearly documented, Dockerized deployment process
-- Customizable SMS passphrase that allows for sharing with friends without manually maintaining an allowlist
 - A suite of tools that the LLM can execute to assist you
   - Fetching weather reports (NOAA API) based on user-provided coordinates
+- Designed for self-hosting, modularity, and customizability, with overwritable model settings + SMS configurations via `.env` and a clearly documented, Dockerized deployment process
+- Customizable SMS passphrase that allows for sharing with friends without manually maintaining an allowlist
 
 ## High-level design
 - A Flask server listens for texts on a Twilio number
@@ -58,14 +58,14 @@ You must create a Business profile, submit a Brand, and create a messaging campa
 The Brand represents your company, and the campaign represents how you'll be messaging customers.
 Each of these steps is thoroughly vetted by regulators and requires review that can take several business days.
 
-Also note that there are various fees associated with setting up a brand / messaging campaign (~$25), and these fees can stack if you mess up your submissions and have to have it re-reviewed. 
-Check out these fees carefully and make sure you have all your ducks in a row before you submit.
+Also note that there are various fees associated with setting up a brand / messaging campaign (~$30 for my use case), and allegedly some of these fees can stack if you mess up your submissions and have to have it re-reviewed. 
+Check them out carefully and make sure you have all your ducks in a row before you submit your campaign.
 
 ### Setting up a Business profile
-The first step is to establish a Business profile in Twilio. This is because an Individual profile only supports creating one Sole Proprietor brand. 
-While a Sole Proprietor (SP) brand may seem like a good fit for this use case, SPs aren't allowed to send A2P messages (Twilio does not make this clear until the brand is already set up).
+The first step is to establish a Business profile in Twilio. This is because the alternative Individual profile only supports creating one Sole Proprietor brand. 
+While a Sole Proprietor (SP) brand may seem like a good fit for this use case, SPs aren't allowed to send A2P messages.
 
-To set up a Business Profile, you'll need an EIN. You can get one for free (and with no tax implications) from the IRS with a simple online form. Even though our 
+To set up a Business Profile, you'll need an EIN. You can easily get one for free from the IRS with a simple online form. Even though our 
 Brand type won't be a sole proprietorship within Twilio, you can still create your EIN as a sole proprietorship with the IRS, and set up your Twilio Business profile as a sole proprietorship.
 
 Note that creating your Business profile will require approval, and this can sometimes get delayed if your EIN is fresh and hasn't appeared yet in the database that Twilio checks against. 
@@ -74,7 +74,7 @@ If this happens, you can request a manual review and submit the letter you recei
 ### Setting up a Brand
 Once you have your Twilio profile set up as a business profile attached to your EIN, you can create the Brand for your A2P campaign.
 Your Brand type will likely want to be something like "Low Volume Mixed", assuming you're not sending thousands of texts per day. Note that different Brand types have different fees associated with them. 
-This is where you DON'T want to choose "Sole Proprietorship", since that Brand type isn't allowed to send automated messages. Creating the Brand will also require approval and can take several days.
+This is where you _don't_ want to choose "Sole Proprietorship", since that Brand type isn't allowed to send automated messages. Creating the Brand will also require approval and can take several days.
 
 ### Setting up a campaign
 Once your Brand is created, you can set up a campaign associated with that Brand. Twilio guides you through the specific questions, but the important theme to keep in mind is that hobbyists are NOT allowed to send A2P messages for personal projects. 
