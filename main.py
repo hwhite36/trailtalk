@@ -184,8 +184,8 @@ def handle_message_response(message: str, user_id: str, prior_convo_history: lis
 
     try:
         response = ping_gemini(prior_convo_history)
-    except Exception as e:
-        logging.error(f"Encountered error when attempting to ping Gemini: {e}")
+    except Exception:
+        logging.exception("Encountered error when attempting to ping Gemini")
         return ERROR_REPLY_MODEL_DOWN
 
     # Check if Gemini wants to do any function calls
@@ -200,8 +200,8 @@ def handle_message_response(message: str, user_id: str, prior_convo_history: lis
             # Note we exclude the weather tool to stop a re-attempt to call it if an error is returned
             try:
                 response = ping_gemini(prior_convo_history, tools_to_exclude=[weather_tool])
-            except Exception as e:
-                logging.error(f"Encountered error when attempting to ping Gemini after tool call: {e}")
+            except Exception:
+                logging.exception(f"Encountered error when attempting to ping Gemini after tool call")
                 return ERROR_REPLY_MODEL_DOWN
             # Since we reassign response, execution flow continues through the function
 

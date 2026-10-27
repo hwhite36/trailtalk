@@ -24,9 +24,9 @@ def init_db_pool():
             dsn=getenv("DATABASE_URL")
         )
         logging.info("Database connection pool initialized successfully.")
-    except Exception as e:
-        logging.error(f"Failed to initialize database connection pool: {e}")
-        raise e
+    except Exception:
+        logging.exception("Failed to initialize database connection pool")
+        raise
 
 
 @contextmanager
@@ -41,10 +41,10 @@ def get_db_cursor():
         yield cur
         conn.commit()
         cur.close()
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        logging.error(f"Database error during transaction: {e}")
-        raise e
+        logging.exception("Database error during transaction")
+        raise
     finally:
         db_pool.putconn(conn)
 
@@ -192,7 +192,6 @@ def load_history_from_db(user_id: str, limit: int = 50, session_hours: int = 4) 
         if has_tool_response:
             start_idx += 1
             continue
-
         break
 
     return history[start_idx:]
@@ -299,7 +298,7 @@ def check_user_rate_limit(user_id: int, max_messages: int = 8, window_seconds: i
 
             return message_count < max_messages
 
-    except Exception as e:
-        logging.error(f"Error checking rate limit for user {user_id}: {e}")
+    except Exception:
+        logging.exception(f"Error checking rate limit for user {user_id}")
         # Allow message if the DB query errors out
         return True

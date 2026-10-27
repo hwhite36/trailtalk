@@ -71,7 +71,7 @@ def get_weather(latitude: float, longitude: float):
         return {"Hourly forecast": hourly_forecast_24hrs, "Week's forecast": week_forecast}
 
     except requests.exceptions.HTTPError as e:
-        logging.error(e)
+        logging.exception('')
         if e.response.status_code == 404:
             return {**ERROR_RESPONSE, "technical_details": "No NOAA weather forecast available for requested location"}
         return {**ERROR_RESPONSE, "technical_details": str(e)}
