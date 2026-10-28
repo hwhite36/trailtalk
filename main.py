@@ -136,7 +136,10 @@ def ping_gemini(convo_history: list, tools_to_exclude: typing.List[types.Tool] |
         contents=convo_history,
         config=types.GenerateContentConfig(
             system_instruction=getenv("LLM_SYSTEM_PROMPT", LLM_SYSTEM_PROMPT),
-            tools=active_tools
+            tools=active_tools,
+            thinking_config=types.ThinkingConfig(
+                thinking_level=types.ThinkingLevel.MEDIUM  # Options: MINIMAL, LOW, MEDIUM, HIGH
+            ),
         )
     )
     return response
