@@ -5,9 +5,10 @@ import logging
 # Define the get_weather tool so Gemini knows how to use it
 get_weather_declaration = {
     "name": "get_weather",
-    "description": "Fetch the hourly and week's weather forecast for a specific location defined via latitude and "
-                   "longitude coordinates when a user explicitly requests a weather forecast or outdoor conditions "
-                   "for a specific geographic location.",
+    "description": ("Fetch the hourly and week's weather forecast (temperature, precipitation, wind) "
+                    "for a specific geographic location. ONLY invoke this tool when the user "
+                    "explicitly asks for weather, temperature, rain, or meteorological forecasts. "
+                    "Do NOT invoke this tool for general questions, camping planning, or lodging recommendations."),
     "parameters": {
         "type": "object",
         "properties": {
