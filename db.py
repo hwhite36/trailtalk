@@ -270,9 +270,10 @@ def update_user_opt_out_status(id: int, opt_out: bool) -> None:
 
 def check_user_rate_limit(user_id: int, max_messages: int = 10, window_seconds: int = 300) -> bool:
     """
-    Checks if a user has exceeded the rate limit by counting their recent 'user'
-    role messages in the conversation_history table within a rolling time window.
-    Note this will also count model tool calls, since those are stored as user-generated messages.
+    Checks if a user has exceeded the rate limit by:
+    - checking if the model is still trying to respond to an earlier message
+    - counting their recent 'user' role messages in the conversation_history table within a rolling time window.
+        Note this will also count model tool calls, since those are stored as user-generated messages.
 
     :param user_id: The primary key ID of the user
     :param max_messages: Maximum allowed messages in the window
@@ -281,8 +282,25 @@ def check_user_rate_limit(user_id: int, max_messages: int = 10, window_seconds: 
     """
     try:
         with get_db_cursor() as cur:
-            window_start = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
+            # First check if the most recent message was a user role
+            # If the model is still trying to respond, we just ignore it
+            cur.execute(
+                """
+                SELECT role 
+                FROM conversation_history 
+                WHERE user_id = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (user_id,)
+            )
+            result = cur.fetchone()
+            if result and 'role' in result and result['role'] == 'user':
+                logging.warning(f"User {user_id} double-texted; ignoring...")
+                return False
 
+            # Now check if the user is within messaging limits
+            window_start = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
             cur.execute(
                 """
                 SELECT COUNT(*) as message_count

@@ -109,9 +109,9 @@ def reply_sms():
 
         # Returning users: if they are under rate limit, load the prior convo history and handle response from there
         if check_user_rate_limit(user_obj['id']):
+            logging.info(f"Message received from existing user {user_obj['id']}")
             prior_convo_history = load_history_from_db(user_obj['id'])
             response_text = handle_message_response(user_message, user_obj['id'], prior_convo_history)
-            logging.info(f"Message received from existing user {user_obj['id']}")
             resp.message(response_text)
         else:
             # otherwise silently ignore
