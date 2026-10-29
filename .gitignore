@@ -1,6 +1,5 @@
 .idea/
 .venv/
 .env
-Pipfile.lock
 __pycache__/
 example-response-bodies/
