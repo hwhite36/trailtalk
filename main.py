@@ -164,8 +164,10 @@ def record_tool_execution(model_request_content, tool_name: str, tool_result, pr
     )
     prior_convo_history.append(model_request_content)
     prior_convo_history.append(tool_result_content)
-    uncommitted_convo.append(model_request_content)
-    uncommitted_convo.append(tool_result_content)
+
+    # Don't save the tool call to the persistent history to help model context
+    #uncommitted_convo.append(model_request_content)
+    #uncommitted_convo.append(tool_result_content)
 
 
 def handle_message_response(message: str, user_id: str, prior_convo_history: list):

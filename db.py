@@ -143,7 +143,7 @@ def save_convo_batch_to_db(user_id: str, content_batch: list) -> list:
     return [dict(r) for r in saved_records]
 
 
-def load_history_from_db(user_id: str, limit: int = 50, session_hours: int = 4) -> list[types.Content]:
+def load_history_from_db(user_id: str, limit: int = 6, session_hours: int = 1) -> list[types.Content]:
     """
     Loads recent conversation context for a user by user ID, bounded by a maximum turn limit and an inactivity cutoff
     window. Guarantees the history payload starts with a 'user' message, as required by the Gemini API.
